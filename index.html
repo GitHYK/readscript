@@ -798,27 +798,17 @@ input[type=range]:active::-webkit-slider-thumb {
       <div class="settings-hint">
         <a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>
         에서 무료 계정 생성 → Profile → API Key 복사<br>
-        무료 플랜: 월 10,000자 · 신용카드 불필요
+        무료 플랜: 월 10,000자 · 신용카드 불필요<br>
+        API 키 입력 후 <b>음성 목록 불러오기</b>를 눌러 사용 가능한 음성을 확인하세요
       </div>
     </div>
 
     <div class="settings-row">
       <div class="settings-label">음성 선택</div>
       <select class="settings-select" id="tts-voice">
-        <optgroup label="여성 (미국)">
-          <option value="21m00Tcm4TlvDq8ikWAM">Rachel — 차분하고 명확한</option>
-          <option value="MF3mGyEYCl7XYWbV9V6O">Elli — 밝고 젊은</option>
-          <option value="AZnzlk1XvdvUeBnXmlld">Domi — 강하고 자신감</option>
-          <option value="EXAVITQu4vr4xnSDxMaL">Bella — 부드럽고 따뜻한</option>
-        </optgroup>
-        <optgroup label="남성 (미국)">
-          <option value="pNInz6obpgDQGcFmaJgB">Adam — 깊고 안정적</option>
-          <option value="TxGEqnHWrfWFTfGW9XjX">Josh — 젊고 친근한</option>
-          <option value="ErXwobaYiN019PkySvjV">Antoni — 부드러운</option>
-          <option value="VR6AewLTigWG4xSOukaG">Arnold — 힘있는</option>
-          <option value="yoZ06aMxZJJ28mfd3POQ">Sam — 차분하고 이성적</option>
-        </optgroup>
+        <option value="">— API 키 입력 후 불러오기 —</option>
       </select>
+      <button class="btn" id="btn-load-voices" style="margin-top:6px;width:100%;padding:8px;">🔄 음성 목록 불러오기</button>
     </div>
 
     <div class="settings-row">
@@ -1446,7 +1436,7 @@ const TTS = {
 
   init() {
     this.apiKey = localStorage.getItem('tts_api_key') || '';
-    this.voice  = localStorage.getItem('tts_voice')   || '21m00Tcm4TlvDq8ikWAM';
+    this.voice  = localStorage.getItem('tts_voice')   || '';
     this.rate   = parseFloat(localStorage.getItem('tts_rate') || '1.0');
     const keyEl   = document.getElementById('tts-api-key');
     const voiceEl = document.getElementById('tts-voice');
@@ -1552,9 +1542,42 @@ const TTS = {
 };
 
 // ── TTS 설정 UI 이벤트 ──────────────────────────────
+// 음성 목록 불러오기
+async function loadVoices() {
+  const apiKey = document.getElementById('tts-api-key').value.trim();
+  if (!apiKey) { TTS.setStatus('⚠️ API 키를 먼저 입력하세요'); return; }
+  TTS.setStatus('음성 목록 불러오는 중...');
+  try {
+    const res = await fetch('https://api.elevenlabs.io/v1/voices', {
+      headers: { 'xi-api-key': apiKey }
+    });
+    if (!res.ok) throw new Error(res.statusText);
+    const data = await res.json();
+    const voices = data.voices || [];
+    if (!voices.length) { TTS.setStatus('사용 가능한 음성이 없습니다'); return; }
+
+    const sel = document.getElementById('tts-voice');
+    sel.innerHTML = voices.map(v =>
+      `<option value="${v.voice_id}"${v.voice_id === TTS.voice ? ' selected' : ''}>${v.name} (${v.labels?.accent || v.labels?.gender || ''})</option>`
+    ).join('');
+
+    // 저장된 voice가 없으면 첫 번째 선택
+    if (!TTS.voice || !voices.find(v => v.voice_id === TTS.voice)) {
+      sel.value = voices[0].voice_id;
+    }
+    TTS.setStatus(`✓ ${voices.length}개 음성 로드 완료`);
+  } catch(e) {
+    TTS.setStatus('❌ ' + e.message);
+  }
+}
+
+document.getElementById('btn-load-voices').addEventListener('click', loadVoices);
+
 document.getElementById('btn-settings').addEventListener('click', () => {
   document.getElementById('settingsOverlay').classList.add('open');
   TTS.setStatus('');
+  // API 키가 있으면 자동으로 음성 목록 불러오기
+  if (document.getElementById('tts-api-key').value.trim()) loadVoices();
 });
 document.getElementById('btn-settings-close').addEventListener('click', () => {
   document.getElementById('settingsOverlay').classList.remove('open');
