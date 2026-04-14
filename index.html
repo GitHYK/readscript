@@ -796,24 +796,21 @@ input[type=range]:active::-webkit-slider-thumb {
       <div class="settings-label">API Key</div>
       <input type="password" class="settings-input" id="tts-api-key" placeholder="sk_...">
       <div class="settings-hint">
-        <a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>
-        에서 무료 계정 생성 → Profile → API Key 복사<br>
-        무료 플랜: 월 10,000자 · 신용카드 불필요<br>
-        API 키 입력 후 <b>음성 목록 불러오기</b>를 눌러 사용 가능한 음성을 확인하세요
+        <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" style="color:var(--accent);">API 키 만들기</a>
+        → 권한에서 아래 항목 모두 체크:<br>
+        ✅ <b>text_to_speech</b> &nbsp; ✅ <b>voices_read</b><br>
+        무료 플랜: 월 10,000자 · 신용카드 불필요
       </div>
     </div>
 
     <div class="settings-row">
-      <div class="settings-label">음성 ID</div>
-      <input type="text" class="settings-input" id="tts-voice"
-             placeholder="voice ID를 입력하거나 아래 버튼으로 불러오기">
-      <button class="btn" id="btn-load-voices" style="margin-top:6px;width:100%;padding:8px;text-align:center;">🔄 내 음성 목록 불러오기</button>
-      <div id="tts-voice-list" style="display:none;margin-top:8px;max-height:160px;overflow-y:auto;border:1px solid var(--border2);border-radius:3px;background:var(--bg);"></div>
-      <div class="settings-hint" style="margin-top:6px;">
-        음성 ID가 없다면:<br>
-        1. <a href="https://elevenlabs.io/app/voice-library" target="_blank" style="color:var(--accent);">elevenlabs.io/app/voice-library</a> 접속<br>
-        2. 원하는 음성 → <b>Add to library</b><br>
-        3. 위 <b>불러오기</b> 버튼 클릭
+      <div class="settings-label">음성 선택</div>
+      <button class="btn" id="btn-load-voices" style="width:100%;padding:9px;text-align:center;margin-bottom:6px;">🔄 내 음성 목록 불러오기</button>
+      <div id="tts-voice-list" style="display:none;max-height:180px;overflow-y:auto;border:1px solid var(--border2);border-radius:3px;background:var(--bg);margin-bottom:6px;"></div>
+      <input type="text" class="settings-input" id="tts-voice" placeholder="또는 Voice ID 직접 입력">
+      <div class="settings-hint" style="margin-top:4px;">
+        Voice ID 찾기: <a href="https://elevenlabs.io/app/voice-lab" target="_blank" style="color:var(--accent);">Voice Lab</a>
+        → 음성 클릭 → ID 복사
       </div>
     </div>
 
