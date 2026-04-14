@@ -573,6 +573,112 @@ input[type=range]:active::-webkit-slider-thumb {
 }
 .btn-save:hover { border-color: var(--accent); color: var(--accent2); }
 
+/* ── TTS 버튼 ── */
+.btn-tts {
+  color: var(--ko);
+  border-color: var(--border2);
+}
+.btn-tts.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(139,69,19,0.08);
+}
+.btn-tts:hover { border-color: var(--accent); color: var(--accent2); }
+
+/* ── 설정 패널 ── */
+.settings-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(245,240,232,0.85);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.settings-overlay.open { display: flex; }
+
+.settings-panel {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 28px 32px;
+  width: min(420px, 90vw);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.settings-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--en-cur);
+  margin-bottom: 20px;
+  letter-spacing: 0.04em;
+}
+
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.settings-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--ts-cur);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.settings-input {
+  padding: 9px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  color: var(--en);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.settings-input:focus { border-color: var(--accent); }
+
+.settings-select {
+  padding: 9px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 3px;
+  color: var(--en);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.settings-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.settings-hint {
+  font-size: 11px;
+  color: var(--ts-cur);
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+.tts-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  min-height: 16px;
+  margin-top: 8px;
+  text-align: center;
+}
+
 /* ── Speed Controls ── */
 .speed-group {
   display: flex;
@@ -673,8 +779,10 @@ input[type=range]:active::-webkit-slider-thumb {
         <button class="btn-speed" data-speed="1.5">1.5×</button>
         <button class="btn-speed" data-speed="2">2×</button>
       </div>
+      <button class="btn btn-tts"    id="btn-tts">🔊 TTS</button>
       <button class="btn btn-filter" id="btn-filter">모두 보기</button>
-      <button class="btn btn-save" id="btn-save">💾 저장</button>
+      <button class="btn btn-save"   id="btn-save">💾 저장</button>
+      <button class="btn"            id="btn-settings">⚙️</button>
     </div>
   </div>
 
@@ -1032,6 +1140,11 @@ function render() {
       el.classList.toggle('cur', lineIdx === curI);
       el.classList.toggle('dim', lineIdx !== curI);
     });
+
+    // TTS 자동 재생 (TTS 켜져 있고 자동재생 중일 때)
+    if (TTS.enabled && playing && activeRows[curI]) {
+      TTS.speak(activeRows[curI].english, null);
+    }
     prevCurIdx = curI;
   }
 
@@ -1265,6 +1378,160 @@ const endDrag = () => { dragging = false; lastTs = performance.now(); };
 sliderEl.addEventListener('mouseup',  endDrag);
 sliderEl.addEventListener('touchend', endDrag);
 
+
+// ══════════════════════════════════════════════════════
+//  ElevenLabs TTS 엔진 (무료 플랜 지원)
+// ══════════════════════════════════════════════════════
+const TTS = {
+  apiKey  : '',
+  voice   : '21m00Tcm4TlvDq8ikWAM', // Rachel
+  rate    : 1.0,
+  enabled : false,
+  cache   : {},   // cacheKey → objectURL
+  audio   : null,
+  loading : false,
+
+  init() {
+    this.apiKey = localStorage.getItem('tts_api_key') || '';
+    this.voice  = localStorage.getItem('tts_voice')   || '21m00Tcm4TlvDq8ikWAM';
+    this.rate   = parseFloat(localStorage.getItem('tts_rate') || '1.0');
+    const keyEl   = document.getElementById('tts-api-key');
+    const voiceEl = document.getElementById('tts-voice');
+    const rateEl  = document.getElementById('tts-rate');
+    if (keyEl   && this.apiKey) keyEl.value   = this.apiKey;
+    if (voiceEl)                voiceEl.value = this.voice;
+    if (rateEl)                 rateEl.value  = String(this.rate);
+  },
+
+  save() {
+    this.apiKey = document.getElementById('tts-api-key').value.trim();
+    this.voice  = document.getElementById('tts-voice').value;
+    this.rate   = parseFloat(document.getElementById('tts-rate').value);
+    localStorage.setItem('tts_api_key', this.apiKey);
+    localStorage.setItem('tts_voice',   this.voice);
+    localStorage.setItem('tts_rate',    String(this.rate));
+    // 음성 바뀌면 캐시 초기화
+    Object.values(this.cache).forEach(url => URL.revokeObjectURL(url));
+    this.cache = {};
+  },
+
+  setStatus(msg) {
+    const el = document.getElementById('tts-status');
+    if (el) el.textContent = msg;
+  },
+
+  stop() {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+      this.audio = null;
+    }
+    this.loading = false;
+  },
+
+  async fetchAudio(text) {
+    const cacheKey = this.voice + '|' + this.rate + '|' + text;
+    if (this.cache[cacheKey]) return this.cache[cacheKey];
+
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${this.voice}`,
+      {
+        method: 'POST',
+        headers: {
+          'xi-api-key'   : this.apiKey,
+          'Content-Type' : 'application/json',
+          'Accept'       : 'audio/mpeg',
+        },
+        body: JSON.stringify({
+          text,
+          model_id: 'eleven_monolingual_v1',
+          voice_settings: {
+            stability        : 0.5,
+            similarity_boost : 0.75,
+            speaking_rate    : this.rate,
+          }
+        })
+      }
+    );
+
+    if (!res.ok) {
+      let msg = res.statusText;
+      try { const e = await res.json(); msg = e.detail?.message || msg; } catch(_) {}
+      throw new Error(`ElevenLabs: ${res.status} ${msg}`);
+    }
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    this.cache[cacheKey] = url;
+    return url;
+  },
+
+  async speak(text, onEnd) {
+    this.stop();
+    if (!this.apiKey) {
+      this.setStatus('⚠️ API 키를 먼저 설정해 주세요');
+      document.getElementById('settingsOverlay').classList.add('open');
+      return;
+    }
+    if (!text || !text.trim()) return;
+    this.loading = true;
+    try {
+      const url   = await this.fetchAudio(text.trim());
+      const audio = new Audio(url);
+      this.audio  = audio;
+      this.loading = false;
+      audio.onended = () => { this.audio = null; if (onEnd) onEnd(); };
+      audio.onerror = (e) => { this.audio = null; console.error('Audio error', e); };
+      await audio.play();
+    } catch(e) {
+      this.loading = false;
+      this.setStatus('❌ ' + e.message);
+      console.error('TTS error:', e);
+    }
+  },
+
+  toggle() {
+    this.enabled = !this.enabled;
+    document.getElementById('btn-tts').classList.toggle('active', this.enabled);
+    if (!this.enabled) this.stop();
+    return this.enabled;
+  }
+};
+
+// ── TTS 설정 UI 이벤트 ──────────────────────────────
+document.getElementById('btn-settings').addEventListener('click', () => {
+  document.getElementById('settingsOverlay').classList.add('open');
+  TTS.setStatus('');
+});
+document.getElementById('btn-settings-close').addEventListener('click', () => {
+  document.getElementById('settingsOverlay').classList.remove('open');
+});
+document.getElementById('settingsOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget)
+    document.getElementById('settingsOverlay').classList.remove('open');
+});
+document.getElementById('btn-settings-save').addEventListener('click', () => {
+  TTS.save();
+  TTS.setStatus('✓ 저장되었습니다');
+  setTimeout(() => document.getElementById('settingsOverlay').classList.remove('open'), 800);
+});
+document.getElementById('btn-tts-test').addEventListener('click', async () => {
+  TTS.save();
+  TTS.setStatus('재생 중...');
+  await TTS.speak('Hello! This is a test of ElevenLabs Text to Speech.', () => {
+    TTS.setStatus('✓ 테스트 완료');
+  });
+});
+document.getElementById('btn-tts').addEventListener('click', () => {
+  TTS.toggle();
+  if (TTS.enabled && activeRows.length) {
+    const idx = Math.max(0, Math.round(currentFloat));
+    TTS.speak(activeRows[idx]?.english || '', null);
+  }
+});
+
+TTS.init();
+
 // ─────────────────────────────────────────────
 // PWA: Service Worker 등록
 // ─────────────────────────────────────────────
@@ -1275,4 +1542,62 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.warn('SW registration failed:', err));
   });
 }
+
 </script>
+
+<!-- ── TTS 설정 패널 ── -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <div class="settings-title">🔊 TTS — ElevenLabs</div>
+
+    <div class="settings-row">
+      <div class="settings-label">API Key</div>
+      <input type="password" class="settings-input" id="tts-api-key" placeholder="sk_...">
+      <div class="settings-hint">
+        <a href="https://elevenlabs.io" target="_blank" style="color:var(--accent);">elevenlabs.io</a>
+        에서 무료 계정 생성 → Profile → API Key 복사<br>
+        무료 플랜: 월 10,000자 · 신용카드 불필요
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">음성 선택</div>
+      <select class="settings-select" id="tts-voice">
+        <optgroup label="여성 (미국)">
+          <option value="21m00Tcm4TlvDq8ikWAM">Rachel — 차분하고 명확한</option>
+          <option value="MF3mGyEYCl7XYWbV9V6O">Elli — 밝고 젊은</option>
+          <option value="AZnzlk1XvdvUeBnXmlld">Domi — 강하고 자신감</option>
+          <option value="EXAVITQu4vr4xnSDxMaL">Bella — 부드럽고 따뜻한</option>
+        </optgroup>
+        <optgroup label="남성 (미국)">
+          <option value="pNInz6obpgDQGcFmaJgB">Adam — 깊고 안정적</option>
+          <option value="TxGEqnHWrfWFTfGW9XjX">Josh — 젊고 친근한</option>
+          <option value="ErXwobaYiN019PkySvjV">Antoni — 부드러운</option>
+          <option value="VR6AewLTigWG4xSOukaG">Arnold — 힘있는</option>
+          <option value="yoZ06aMxZJJ28mfd3POQ">Sam — 차분하고 이성적</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">재생 속도</div>
+      <select class="settings-select" id="tts-rate">
+        <option value="0.75">0.75× (느리게)</option>
+        <option value="1.0" selected>1.0× (기본)</option>
+        <option value="1.1">1.1×</option>
+        <option value="1.25">1.25×</option>
+      </select>
+    </div>
+
+    <div class="tts-status" id="tts-status"></div>
+
+    <div class="settings-btns">
+      <button class="btn" id="btn-tts-test">테스트</button>
+      <button class="btn" id="btn-settings-close">닫기</button>
+      <button class="btn btn-play" id="btn-settings-save">저장</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
