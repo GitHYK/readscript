@@ -3,39 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Reading Lines – Chapters</title>
+<title>Reading Script</title>
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Reading Lines">
-<meta name="theme-color" content="#07090e">
+<meta name="apple-mobile-web-app-title" content="Reading Script">
+<meta name="theme-color" content="#f5f0e8">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Noto+Serif+KR:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet">
 
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #07090e;
-  --surface:   #0c1018;
-  --border:    #181f2e;
-  --border2:   #222d40;
-  --en:        #ddd0b8;
-  --en-cur:    #f5ead8;
-  --ko:        #6a7d96;
-  --ko-cur:    #8fa3bc;
-  --ts:        #2e3f56;
-  --ts-cur:    #4a6680;
-  --accent:    #b8924a;
-  --accent2:   #d4aa6a;
-  --dim:       #1e2a3a;
+  --bg:        #f5f0e8;
+  --surface:   #ede7d9;
+  --border:    #d4c9b4;
+  --border2:   #c0b49a;
+  --en:        #2c2416;
+  --en-cur:    #1a1208;
+  --ko:        #6b5d48;
+  --ko-cur:    #4a3d2c;
+  --ts:        #a8977e;
+  --ts-cur:    #8a7a62;
+  --accent:    #8b4513;
+  --accent2:   #a0522d;
+  --dim:       #d8cfbe;
 }
 
 body {
   background: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   color: var(--en);
   font-family: 'Noto Sans KR', sans-serif;
   height: 100vh;
@@ -96,17 +98,18 @@ body {
 }
 
 .logo-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 72px;
+  font-family: 'Crimson Pro', serif;
+  font-size: 64px;
   font-weight: 300;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
   line-height: 1;
   color: var(--en);
 }
 
 .logo-title em {
   font-style: italic;
-  color: var(--accent2);
+  color: var(--accent);
+  font-weight: 400;
 }
 
 .drop-zone {
@@ -123,6 +126,7 @@ body {
   cursor: pointer;
   background: var(--surface);
   transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .drop-zone::before {
@@ -217,19 +221,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 48px;
-  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  border-bottom: 2px solid var(--border2);
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 .ph-logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
-  font-weight: 300;
-  letter-spacing: 0.25em;
-  color: var(--accent);
+  font-family: 'Crimson Pro', serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--en-cur);
 }
-
-.ph-logo span { color: var(--en); opacity: 0.4; }
+.ph-logo em { color: var(--accent); font-style: italic; }
 
 .ph-file {
   font-family: 'IBM Plex Mono', monospace;
@@ -250,7 +255,7 @@ body {
   gap: 0;
   overflow-x: auto;
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border2);
   padding: 0 12px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -340,9 +345,9 @@ body {
 
 .le-bar {
   flex-shrink: 0;
-  width: 3px;
+  width: 4px;
   height: 100%;
-  margin-right: 20px;
+  margin-right: 16px;
   background: transparent;
   transition: background 0.3s;
   align-self: stretch;
@@ -368,11 +373,11 @@ body {
 }
 
 .le-en {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 18px;
-  font-weight: 400;
+  font-family: 'Crimson Pro', serif;
+  font-size: 17px;
+  font-weight: 300;
   color: var(--en);
-  line-height: 1.35;
+  line-height: 1.4;
   margin-bottom: 5px;
   transition: color 0.3s, font-size 0.3s;
   word-break: break-word;
@@ -388,6 +393,7 @@ body {
   display: flex;
   align-items: baseline;
   gap: 6px;
+  font-family: 'Noto Serif KR', serif;
   font-size: 12px;
   color: var(--ko);
   line-height: 1.5;
@@ -409,7 +415,7 @@ body {
 /* ── Current line state ── */
 .le.cur .le-bar    { background: var(--accent); }
 .le.cur .le-ts     { color: var(--ts-cur); }
-.le.cur .le-en     { color: var(--en-cur); font-size: 26px; }
+.le.cur .le-en     { color: var(--en-cur); font-size: 26px; font-weight: 600; font-style: italic; }
 .le.cur .le-ko     { color: var(--ko-cur); }
 .le.cur .ko-tag    { color: var(--accent); }
 
@@ -443,7 +449,7 @@ body {
   background: rgba(184,146,74,0.18);
   color: var(--accent2);
 }
-.le.memorized { opacity: 0.35; }
+.le.memorized { opacity: 0.3; }
 .le.cur.memorized { opacity: 1; }
 
 /* ── 필터 버튼 ── */
@@ -463,8 +469,9 @@ body {
 .controls {
   flex-shrink: 0;
   background: var(--surface);
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--border2);
   padding: 10px 16px 12px;
+  box-shadow: 0 -1px 4px rgba(0,0,0,0.06);
 }
 
 .slider-row {
@@ -488,8 +495,8 @@ input[type=range] {
   flex: 1;
   -webkit-appearance: none;
   height: 2px;
-  background: var(--border2);
-  border-radius: 1px;
+  background: var(--border);
+  border-radius: 2px;
   outline: none;
   cursor: pointer;
 }
@@ -611,8 +618,8 @@ input[type=range]:active::-webkit-slider-thumb {
       <div class="logo-sub">Script Synchronized Reader &nbsp;·&nbsp; v22</div>
       <div class="logo-dash"></div>
     </div>
-    <div class="logo-title">Reading <em>Lines</em></div>
-    <div class="logo-sub" style="margin-top:8px;letter-spacing:0.3em;font-size:11px;">Chapters Edition</div>
+    <div class="logo-title">Reading <em>Script</em></div>
+    
   </div>
 
   <div class="drop-zone" id="dropZone">
@@ -638,7 +645,7 @@ input[type=range]:active::-webkit-slider-thumb {
 <div id="scr-player">
 
   <header class="ph">
-    <div class="ph-logo">R<span>/</span>L<span style="font-size:11px;letter-spacing:0.2em;opacity:0.6;margin-left:6px;">CH</span></div>
+    <div class="ph-logo">Reading <em style="font-style:italic;">Script</em></div>
     <div class="ph-file" id="ph-file">—</div>
   </header>
 

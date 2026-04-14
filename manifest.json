@@ -1,12 +1,12 @@
 {
-  "name": "Reading Lines – Chapters",
-  "short_name": "RL Chapters",
-  "description": "Chapter-based Script Synchronized Reader",
+  "name": "Reading Script",
+  "short_name": "Reading Script",
+  "description": "Chapter-based Script Reader",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#07090e",
-  "background_color": "#07090e",
+  "theme_color": "#f5f0e8",
+  "background_color": "#f5f0e8",
   "lang": "ko",
   "icons": [
     {
