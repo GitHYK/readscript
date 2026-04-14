@@ -804,11 +804,17 @@ input[type=range]:active::-webkit-slider-thumb {
     </div>
 
     <div class="settings-row">
-      <div class="settings-label">음성 선택</div>
-      <select class="settings-select" id="tts-voice">
-        <option value="">— API 키 입력 후 불러오기 —</option>
-      </select>
-      <button class="btn" id="btn-load-voices" style="margin-top:6px;width:100%;padding:8px;">🔄 음성 목록 불러오기</button>
+      <div class="settings-label">음성 ID</div>
+      <input type="text" class="settings-input" id="tts-voice"
+             placeholder="voice ID를 입력하거나 아래 버튼으로 불러오기">
+      <button class="btn" id="btn-load-voices" style="margin-top:6px;width:100%;padding:8px;text-align:center;">🔄 내 음성 목록 불러오기</button>
+      <div id="tts-voice-list" style="display:none;margin-top:8px;max-height:160px;overflow-y:auto;border:1px solid var(--border2);border-radius:3px;background:var(--bg);"></div>
+      <div class="settings-hint" style="margin-top:6px;">
+        음성 ID가 없다면:<br>
+        1. <a href="https://elevenlabs.io/app/voice-library" target="_blank" style="color:var(--accent);">elevenlabs.io/app/voice-library</a> 접속<br>
+        2. 원하는 음성 → <b>Add to library</b><br>
+        3. 위 <b>불러오기</b> 버튼 클릭
+      </div>
     </div>
 
     <div class="settings-row">
@@ -1448,7 +1454,7 @@ const TTS = {
 
   save() {
     this.apiKey = document.getElementById('tts-api-key').value.trim();
-    this.voice  = document.getElementById('tts-voice').value;
+    this.voice  = document.getElementById('tts-voice').value.trim();
     this.rate   = parseFloat(document.getElementById('tts-rate').value);
     localStorage.setItem('tts_api_key', this.apiKey);
     localStorage.setItem('tts_voice',   this.voice);
@@ -1551,24 +1557,44 @@ async function loadVoices() {
     const res = await fetch('https://api.elevenlabs.io/v1/voices', {
       headers: { 'xi-api-key': apiKey }
     });
-    if (!res.ok) throw new Error(res.statusText);
-    const data = await res.json();
-    const voices = data.voices || [];
-    if (!voices.length) { TTS.setStatus('사용 가능한 음성이 없습니다'); return; }
-
-    const sel = document.getElementById('tts-voice');
-    sel.innerHTML = voices.map(v =>
-      `<option value="${v.voice_id}"${v.voice_id === TTS.voice ? ' selected' : ''}>${v.name} (${v.labels?.accent || v.labels?.gender || ''})</option>`
-    ).join('');
-
-    // 저장된 voice가 없으면 첫 번째 선택
-    if (!TTS.voice || !voices.find(v => v.voice_id === TTS.voice)) {
-      sel.value = voices[0].voice_id;
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail?.message || `HTTP ${res.status}`);
     }
-    TTS.setStatus(`✓ ${voices.length}개 음성 로드 완료`);
+    const data   = await res.json();
+    const voices = (data.voices || []).filter(v => v.voice_id);
+    if (!voices.length) {
+      TTS.setStatus('⚠️ 라이브러리에 음성 없음 → 아래 안내대로 추가하세요');
+      return;
+    }
+
+    // 목록 UI 렌더
+    const listEl = document.getElementById('tts-voice-list');
+    listEl.style.display = 'block';
+    listEl.innerHTML = voices.map(v => {
+      const label = [v.labels?.gender, v.labels?.accent].filter(Boolean).join(', ');
+      return `<div onclick="selectVoice('${v.voice_id}','${v.name.replace(/'/g,"\'")}',this)"
+        style="padding:8px 12px;cursor:pointer;font-size:12px;
+               border-bottom:1px solid var(--border);
+               background:${v.voice_id === TTS.voice ? 'rgba(139,69,19,0.1)' : 'transparent'};">
+        <b style="color:var(--en-cur)">${v.name}</b>
+        ${label ? `<span style="color:var(--ts-cur);margin-left:6px;font-size:11px;">${label}</span>` : ''}
+        <div style="color:var(--ts-cur);font-size:10px;font-family:monospace;margin-top:2px;">${v.voice_id}</div>
+      </div>`;
+    }).join('');
+
+    TTS.setStatus(`✓ ${voices.length}개 음성 — 클릭하여 선택`);
   } catch(e) {
     TTS.setStatus('❌ ' + e.message);
   }
+}
+
+function selectVoice(id, name, el) {
+  document.getElementById('tts-voice').value = id;
+  // 선택 강조
+  el.parentElement.querySelectorAll('div').forEach(d => d.style.background = 'transparent');
+  el.style.background = 'rgba(139,69,19,0.12)';
+  TTS.setStatus(`✓ "${name}" 선택됨`);
 }
 
 document.getElementById('btn-load-voices').addEventListener('click', loadVoices);
@@ -1581,6 +1607,7 @@ document.getElementById('btn-settings').addEventListener('click', () => {
 });
 document.getElementById('btn-settings-close').addEventListener('click', () => {
   document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('tts-voice-list').style.display = 'none';
 });
 document.getElementById('settingsOverlay').addEventListener('click', e => {
   if (e.target === e.currentTarget)
